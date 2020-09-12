@@ -13,6 +13,7 @@ sh build.sh
 ```
 # Execute
 
+Execution will automatically open the browser with the home page of the application - http://localhost:8100/static/index.html
 ```
 cd $HOME/go-gui/bin
 ./app
