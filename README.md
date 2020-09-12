@@ -11,11 +11,15 @@ cd $HOME/go-gui/scripts
 sh build.sh
 
 ```
-#Execute
+# Execute
 
 ```
 cd $HOME/go-gui/bin
 ./app
 
 ```
+ 
+# Demo
+
+![Dmeo](https://github.com/vinodborole/go-gui/demo.jpg)
  
