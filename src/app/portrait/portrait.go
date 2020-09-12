@@ -3,10 +3,14 @@ package portrait
 import (
 	"app/repo"
 	"encoding/json"
+	"fmt"
 	"github.com/ant0ine/go-json-rest/rest"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
+	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -56,10 +60,26 @@ func (p *PortraitApp) Init() (err error) {
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./webapp"))))
 	// static pages example => http://localhost:8100/static/index.html (index.html was available under /webapp folder)
 
-	err = http.ListenAndServe(":8100", nil)
-	if err != nil {
-		return
+	server := http.Server{
+		Addr:         ":8100",
+		ReadTimeout:  1000 * time.Second,
+		WriteTimeout: 1000 * time.Second,
 	}
+	done := make(chan bool)
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil {
+			return
+		}
+		done <- true
+	}()
+	fmt.Print("Opening browser...")
+	Openbrowser("http://localhost:8100/static/index.html")
+	<-done
+	//err = http.ListenAndServe(":8100", nil)
+	//if err != nil {
+	//	return
+	//}
 	return
 }
 
@@ -268,5 +288,23 @@ func (p *PortraitApp) GetRandom10Posts(w rest.ResponseWriter, req *rest.Request)
 		valueMap["portraits"] = []string{}
 		w.WriteJson(valueMap)
 		return
+	}
+}
+
+func Openbrowser(url string) {
+	var err error
+
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		err = fmt.Errorf("unsupported platform")
+	}
+	if err != nil {
+		log.Fatal(err)
 	}
 }
