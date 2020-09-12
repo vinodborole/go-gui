@@ -21,5 +21,5 @@ cd $HOME/go-gui/bin
  
 # Demo
 
-![Dmeo](https://github.com/vinodborole/go-gui/demo.jpg)
+![Demo](demo.jpg)
  
