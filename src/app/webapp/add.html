@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>portrait app - add</title>
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"> <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"> <!-- Bootstrap core CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.11/css/mdb.min.css" rel="stylesheet"> <!-- Material Design Bootstrap -->
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> <!-- vue.js -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> <!-- JQuery -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script> <!-- Bootstrap tooltips -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script> <!-- Bootstrap core JavaScript -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.11/js/mdb.min.js"></script> <!-- MDB core JavaScript -->
+
+    <style>
+        .container-main {
+            width: 1000px;
+            margin: auto;
+            text-align: center;
+        }
+        .main-title {
+            font-size: 1.6em;
+            font-weight: lighter;
+        }
+    </style>
+
+    <script>
+        let fileUploadObject = null;
+
+        function activateFileUploadDialog() {
+            if (!fileUploadObject) {
+                fileUploadObject = document.getElementById("filePhoto");
+            }   // try to get an instance of the file object in html
+
+            if (fileUploadObject) {
+                fileUploadObject.click();
+            }
+        }
+        function fileUploadObjectOnChange(event) {
+            let fReader = new FileReader();
+            fReader.addEventListener("load", function() {
+                document.querySelector("img[id=img_portrait]").src = fReader.result;
+            });
+            fReader.readAsDataURL(event.target.files[0])
+        }
+
+        function addPortrait() {
+            if (!fileUploadObject) {
+                alert("you need to upload a photo file at least~");
+                return
+            }
+            let formObject = new FormData();
+            formObject.append("createDate", document.querySelector("#txtCreateDate").value);
+            formObject.append("desc", document.querySelector("#txtDescription").value);
+            formObject.append("photographer", document.querySelector("#txtPhotographer").value);
+            formObject.append("file", fileUploadObject.files[0]);
+
+            // using xhr way
+            // xhrFileUpload(formObject);
+
+            // using jQuery
+            jQueryFileUpload(formObject);
+        }
+
+        /**
+         * jQuery way to ajax file upload
+         * @param formObject
+         */
+        function jQueryFileUpload(formObject) {
+            /*
+             *  so you can't set headers to Content-Type: multipart/form-data
+             *  also you NEED to add back enctype: multipart/form-data INSTEAD~
+             *  plus set contentType: false TOO!
+             */
+            if (jQuery) {
+                jQuery.ajax({
+                    'type': 'POST',
+                    'enctype': 'multipart/form-data',
+                    'url': "http://localhost:8100/api/addPost",
+                    'data': formObject,
+                    'processData': false,
+                    'contentType': false,
+                    'cache': false,
+                    'timeout': 600000,
+                    //'dataType': 'json',
+                    'success': function (data, status) {
+                        if (data && "success" === data["status"]) {
+                            alert(data["message"])
+                        }
+                    }
+                });
+            }
+        }
+
+        /**
+         * xmlHttpRequest way to file upload
+         * @param formObject
+         */
+        function xhrFileUpload(formObject) {
+            let xhr = new XMLHttpRequest();
+
+            xhr.open("POST", "http://localhost:8100/api/addPost", true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    // Every thing ok, file uploaded
+                    console.log(xhr.responseText); // handle response.
+                    console.log("success~")
+                }
+            };
+            xhr.send(formObject);
+        }
+
+        function fwdToListing() {
+            window.location = "http://localhost:8100/static/listing.html"
+        }
+
+    </script>
+</head>
+<body class="container-main"
+      style="margin-top: 40px;">
+
+    <span class="fa-stack fa-1x amber-text float-right"
+        onclick="fwdToListing()"
+        style="cursor:pointer;"
+        title="back to listing page">
+        <i class="fas fa-circle fa-stack-2x"></i>
+        <i class="far fa-address-book fa-stack-1x fa-inverse"></i>
+    </span>
+
+    </span>
+    <div class="main-title" style="margin-bottom: 20px;">add a new portrait</div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6" style="margin: auto;">
+                <!--  z-depth-1 -->
+                <img id="img_portrait"
+                     style="cursor: pointer;"
+                     src="add_portrait.png" 
+                     class="img-fluid" 
+                     alt="add a new portrait" 
+                     onclick="activateFileUploadDialog();" />
+                <div style="display: none;">
+                    <!-- accept="image/*" -->
+                    <input type="file"
+                           id="filePhoto"
+                           accept="image/x-png,image/gif,image/jpeg"
+                           onchange="fileUploadObjectOnChange(event)" />
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="md-form input-group mb-3">
+                    <input id="txtPhotographer" type="text" class="form-control" placeholder="photographer" aria-label="photographer" aria-describedby="material-addon1">
+                </div>
+
+                <div class="md-form input-group mb-3">
+                    <input id="txtCreateDate" type="text" class="form-control" placeholder="date" aria-label="date" aria-describedby="material-addon1">
+                </div>
+
+                <div class="md-form">
+                    <textarea id="txtDescription" class="md-textarea form-control" rows="3"></textarea>
+                    <label for="txtDescription">description</label>
+                </div>
+
+                <!-- button -->
+                <div class="float-right">
+                    <input type="button" class="btn btn-primary" value="add" onclick="addPortrait();" />
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- add back the vue.js components here; the html elements must be available before Vue is run -->
+    <script>
+        // any Vue related things should be coded here
+    </script>
+</body>
+</html>
